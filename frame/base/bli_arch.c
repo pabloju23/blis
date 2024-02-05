@@ -230,9 +230,17 @@ arch_t bli_arch_query_id_impl( void )
 		#ifdef BLIS_FAMILY_A64FX
 		id = BLIS_ARCH_A64FX;
 		#endif
+
+		#ifdef BLIS_FAMILY_ALTRAMAX
+		id = BLIS_ARCH_ALTRAMAX;
+		#endif
+		#ifdef BLIS_FAMILY_ALTRA
+		id = BLIS_ARCH_ALTRA;
+		#endif
 		#ifdef BLIS_FAMILY_FIRESTORM
 		id = BLIS_ARCH_FIRESTORM;
 		#endif
+
 		#ifdef BLIS_FAMILY_THUNDERX2
 		id = BLIS_ARCH_THUNDERX2;
 		#endif
@@ -242,6 +250,7 @@ arch_t bli_arch_query_id_impl( void )
 		#ifdef BLIS_FAMILY_CORTEXA53
 		id = BLIS_ARCH_CORTEXA53;
 		#endif
+
 		#ifdef BLIS_FAMILY_CORTEXA15
 		id = BLIS_ARCH_CORTEXA15;
 		#endif
@@ -275,6 +284,11 @@ arch_t bli_arch_query_id_impl( void )
 		#endif
 		#ifdef BLIS_FAMILY_RV64IV
 		id = BLIS_ARCH_RV64IV;
+		#endif
+
+		// SiFive microarchitectures.
+		#ifdef BLIS_FAMILY_SIFIVE_X280
+		id = BLIS_ARCH_SIFIVE_X280;
 		#endif
 
 		// Generic microarchitecture.
@@ -320,10 +334,15 @@ static const char* config_name[ BLIS_NUM_ARCHS ] =
 
     "armsve",
     "a64fx",
+
+	"altramax",
+	"altra",
     "firestorm",
+
     "thunderx2",
     "cortexa57",
     "cortexa53",
+
     "cortexa15",
     "cortexa9",
 
@@ -336,6 +355,8 @@ static const char* config_name[ BLIS_NUM_ARCHS ] =
     "rv64i",
     "rv32iv",
     "rv64iv",
+
+    "sifive_x280",
 
     "generic"
 };

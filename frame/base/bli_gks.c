@@ -59,10 +59,18 @@ typedef void (*ind_cntx_init_ft)( ind_t method, cntx_t* cntx );
 static cntx_t* cached_cntx_nat = NULL;
 static cntx_t* cached_cntx_ind = NULL;
 
+// A mutex to allow synchronous access to the gks when it needs to be updated
+// with a new entry corresponding to a context for an ind_t value.
+static bli_pthread_mutex_t gks_mutex = BLIS_PTHREAD_MUTEX_INITIALIZER;
+
 // -----------------------------------------------------------------------------
 
-void bli_gks_init( void )
+int bli_gks_init( void )
 {
+	// NOTE: This function is called once by ONLY ONE application thread per
+	// library init/finalize cycle (see bli_init.c). Thus, a mutex is not
+	// needed to protect the data initialization.
+
 	{
 		// Initialize the internal data structure we use to track registered
 		// contexts.
@@ -157,6 +165,16 @@ void bli_gks_init( void )
 #endif
 
 		// -- ARM-NEON (4 pipes x 128-bit vectors) --
+#ifdef BLIS_CONFIG_ALTRAMAX
+		bli_gks_register_cntx( BLIS_ARCH_ALTRAMAX,    bli_cntx_init_altramax,
+		                                              bli_cntx_init_altramax_ref,
+		                                              bli_cntx_init_altramax_ind );
+#endif
+#ifdef BLIS_CONFIG_ALTRA
+		bli_gks_register_cntx( BLIS_ARCH_ALTRA,       bli_cntx_init_altra,
+		                                              bli_cntx_init_altra_ref,
+		                                              bli_cntx_init_altra_ind );
+#endif
 #ifdef BLIS_CONFIG_FIRESTORM
 		bli_gks_register_cntx( BLIS_ARCH_FIRESTORM,   bli_cntx_init_firestorm,
 		                                              bli_cntx_init_firestorm_ref,
@@ -241,6 +259,14 @@ void bli_gks_init( void )
 		                                              bli_cntx_init_rv64iv_ind );
 #endif
 
+		// -- SiFive architectures ----------------------------------------------
+
+#ifdef BLIS_CONFIG_SIFIVE_X280
+		bli_gks_register_cntx( BLIS_ARCH_SIFIVE_X280, bli_cntx_init_sifive_x280,
+		                                              bli_cntx_init_sifive_x280_ref,
+		                                              bli_cntx_init_sifive_x280_ind );
+#endif
+
 		// -- Generic architectures --------------------------------------------
 
 #ifdef BLIS_CONFIG_GENERIC
@@ -261,11 +287,13 @@ void bli_gks_init( void )
 	cached_cntx_nat = ( cntx_t* )bli_gks_query_nat_cntx_noinit();
 	cached_cntx_ind = ( cntx_t* )bli_gks_query_ind_cntx_noinit( BLIS_1M );
 #endif
+
+	return 0;
 }
 
 // -----------------------------------------------------------------------------
 
-void bli_gks_finalize( void )
+int bli_gks_finalize( void )
 {
 	arch_t id;
 	ind_t  ind;
@@ -318,6 +346,8 @@ void bli_gks_finalize( void )
 	cached_cntx_nat = NULL;
 	cached_cntx_ind = NULL;
 #endif
+
+	return 0;
 }
 
 // -----------------------------------------------------------------------------
@@ -612,10 +642,6 @@ const cntx_t* bli_gks_query_ind_cntx_noinit
 }
 
 // -----------------------------------------------------------------------------
-
-// A mutex to allow synchronous access to the gks when it needs to be updated
-// with a new entry corresponding to a context for an ind_t value.
-static bli_pthread_mutex_t gks_mutex = BLIS_PTHREAD_MUTEX_INITIALIZER;
 
 const cntx_t* bli_gks_query_ind_cntx_impl
      (
