@@ -1,0 +1,11 @@
+prefix=/home/pabloju/install/blis
+exec_prefix=/home/pabloju/install/blis
+libdir=/home/pabloju/install/blis/lib
+includedir=/home/pabloju/install/blis/include
+
+Name: BLIS
+Description: BLAS-like Library Instantiation Software Framework
+Version: 0.9.0-136
+Libs: -L${libdir} -lblis
+Libs.private:  -lm -lpthread -fopenmp
+Cflags: -I${includedir}/blis
